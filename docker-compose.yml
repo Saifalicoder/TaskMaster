@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./backend
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./backend/:/home/app/web/
+      - static_volume:/home/app/web/staticfiles
+    ports:
+      - 8000:8000
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
+    env_file:
+      - ./.env.dev.db
+  
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    volumes:
+      - frontend_html:/usr/share/nginx/html
+    # ports:
+    #   - "3000:80"  # Map container's port 80 to host's 3000 (Vite frontend default)
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  celery_worker:
+    build: ./backend
+    command: celery -A core worker --loglevel=info
+    volumes:
+      - ./backend/:/home/app/web/
+    depends_on:
+      - web
+      - redis
+    env_file:
+      - ./.env.dev
+
+  celery_beat:
+    build: ./backend
+    command: celery -A core beat --loglevel=info
+    volumes:
+      - ./backend/:/home/app/web/
+    depends_on:
+      - web
+      - redis
+    env_file:
+      - ./.env.dev
+
+  nginx:
+    build: ./nginx
+    volumes:
+      - static_volume:/home/app/web/staticfiles
+      - frontend_html:/usr/share/nginx/html
+      
+    ports:
+      - 1337:80
+    depends_on:
+      - web
+      - frontend
+
+  dashboard:
+    build: ./backend
+    command: celery flower -A core --port=5555 --broker=redis://redis:6379/0
+    volumes:
+      - ./backend/:/home/app/web/
+    ports:
+      - 5555:5555
+    env_file:
+        - ./.env.dev
+    depends_on:
+      - web
+      - redis
+      - celery_beat
+      - celery_worker
+
+volumes:
+  postgres_data:
+  static_volume:
+  frontend_html:
