@@ -10,36 +10,66 @@ TaskMaster leverages Redis and Celery for asynchronous task processing and uses 
 - Redis and Celery: Background processing for sending periodic task reminders.
 - Periodic Reminders: Automated reminders using Celery Beat to keep users informed of upcoming tasks.
 ### Technologies Used
-- Django 
-- React
-- Docker
-- Nginx
-- Redis
-- Celery & Celery Beat
+- **Django** 
+- **React**
+- **Docker**
+- **Nginx**
+- **Redis**
+- **Celery & Celery Beat**
 ### Prerequisites
-- **Python 3.x** must be installed.
-- Docker must be installed and running on your system.
+- **Python** must be installed.
+- **Docker** must be installed and running on your system.
 
 ### Steps to Setup the Project Locally
 1. **Clone the Repository and setup virtual environment**
    ```bash
    git clone https://github.com/Saifalicoder/TaskMaster.git
    cd TaskMaster
-   docker-compose up --build
+  
 
    ```
-2. **Run Migrations and Create Superuser**
+1. **Create Environment Files**
+   - In the root directory, create two files: .env.dev and .env.dev.db.
+   
+   - Copy and paste the following configurations into each file:
+   - .env.dev
+     ```
+      DEBUG=1
+      SECRET_KEY=secret
+      DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      SQL_ENGINE=django.db.backends.postgresql
+      SQL_DATABASE=dbname
+      SQL_USER=user
+      SQL_PASSWORD=password
+      SQL_HOST=db
+      SQL_PORT=5432
+      CELERY_BROKER_URL=redis://redis:6379/0
+      CELERY_BACKEND=redis://redis:6379/0
+     ```
+    - .env.dev.db
+        ```
+         POSTGRES_USER=user
+         POSTGRES_PASSWORD=password
+         POSTGRES_DB=dbname
+   
+        ```
+   - Run this command
+     ```bash
+   
+       docker-compose up --build
+      ```
+3. **Run Migrations and Create Superuser**
    ```bash
    docker-compose exec web python manage.py migrate
    docker-compose exec web python manage.py createsuperuser
 
    ```
-3. **Access the Application**
+4. **Access the Application**
    - Visit http://localhost:80 in your web browser to access the application.
 
-![image](https://github.com/user-attachments/assets/e1595ad1-5345-4044-b7d3-643754b20f96)
+![image](https://github.com/user-attachments/assets/6f4fd60a-a45b-4a9c-b7b5-13a543d51ab2)
 
-![image](https://github.com/user-attachments/assets/d32308a8-6e0b-480e-9582-bd20d7bc4fcc)
+![image](https://github.com/user-attachments/assets/66bf5c13-f7f4-4a77-ae64-aa486ad1d079)
 
 ![image](https://github.com/user-attachments/assets/53a9b80a-c1d2-47c0-b25c-cfacd8271cee)
 
